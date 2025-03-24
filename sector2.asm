@@ -508,6 +508,10 @@ read_file_characters:
     cmp al, 0x1B
     je edit_done
 
+    ; if enter pressed exit and switch page
+    cmp al, 0x0D
+    je edit_done
+
     mov byte [di], al
     inc di
 
@@ -866,6 +870,10 @@ help:
     call enter
     call enter
     
+    mov si, help0
+    call print_si
+    call enter
+
     mov si, help1
     call print_si
     call enter
@@ -908,6 +916,15 @@ info:
     ret
 
 
+sheep:
+    call enter
+    call enter
+    mov si, sheep_art
+    call print_si
+
+    ret
+
+
 main:
     call enter
 
@@ -919,7 +936,7 @@ main:
     jmp main_loop
 
 main_loop:
-    mov si, sheep
+    mov si, prompt
     call print_si
 
     ; reset di
@@ -1036,6 +1053,13 @@ review_command:
     cmp cl, 0
     je call_info
 
+    ; SHEEP
+    mov di, 0x9900
+    mov si, command_sheep
+    call cmp_si_di
+    cmp cl, 0
+    je call_sheep
+
     jmp print_newline
 
 
@@ -1088,6 +1112,10 @@ call_info:
     call info
     jmp print_newline
 
+call_sheep:
+    call sheep
+    jmp print_newline
+
 test:
     mov ah, 0x0e
     mov al, 'p'
@@ -1099,7 +1127,7 @@ error:
     hlt
 
 
-sheep db "sheep:", 0
+prompt db "sheep:", 0
 msg_error db "ERROR", 0
 create_msg db "Enter name: ", 0
 name db "------------"
@@ -1123,6 +1151,7 @@ command_delete db "delete", 0
 command_random db "random", 0
 command_help db "help", 0
 command_info db "info", 0
+command_sheep db "sheep", 0
 
 buffer dw 0x9900
 sector dw 20
@@ -1134,6 +1163,7 @@ files_offset dw 25
 cursor_row db 0
 cursor_column db 0
 
+help0 db "Type a command and press enter. For the commands requiring a file name you will have a special prompt.", 0
 help1 db "Available commands:", 0
 help2 db "create - create a new file", 0
 help3 db "delete - delete a file", 0
@@ -1141,7 +1171,8 @@ help4 db "edit - edit a file", 0
 help5 db "help - provides a list of all commands", 0
 help6 db "info - prints detailed info for all commands", 0
 help7 db "list - list all files", 0
-help8 db "view - view contents of a file", 0
+help8 db "sheep - prints a sheep", 0
+help9 db "view - view contents of a file", 0
 
 sheep_art db "     ,~'``'~;'``'~,", 0x0D, 0x0A
           db "   _(              )", 0x0D, 0x0A
