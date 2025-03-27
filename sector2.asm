@@ -999,13 +999,17 @@ print_character:
     mov ah, 0x00 
     int 0x16
 
-    ; add character to buffer
-    mov byte [di], al
-    inc di
-
     ; if enter pressed review command
     cmp al, 0x0D
     je review_command
+
+    ; if backspace pressed remove from di (replace with space)
+    cmp al, 0x08
+    je backspace_pressed
+
+    ; add character to buffer
+    mov byte [di], al
+    inc di
 
     ; print character
     mov ah, 0x0e
@@ -1013,16 +1017,43 @@ print_character:
 
     jmp print_character
 
-print_newline:
-    ; print newline
+backspace_pressed:
+    ; if di == 0x9900 you cannot delete (you would delete prompt)
+    cmp di, 0x9900
+    je print_character
+
+    ; else delete character
+    dec di
+    mov byte [di], ' '
+    
+
+    ; get cursor position
+    mov ah, 0x03
+    mov bh, 0x00
+    int 0x10
+
+    ; move cursor one left
+    dec dl
+
+    ; move cursor
+    mov ah, 0x02
+    mov bh, 0x00
+    int 0x10
+
+    ; print space to erase previous character
     mov ah, 0x0e
-
-    mov al, 0x0d
+    mov al, ' '
     int 0x10
 
-    mov al, 0x0a
+    ; move cursor back again
+    mov ah, 0x02
+    mov bh, 0x00
     int 0x10
 
+    jmp print_character
+
+print_newline:
+    call enter
     jmp main_loop
 
 review_command:

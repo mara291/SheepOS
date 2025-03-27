@@ -1,15 +1,15 @@
 ASM = nasm
 DD = dd
 VBOXMANAGE = VBoxManage
-VM_NAME = MyOS100
-IMG_NAME = myos100.img
-VDI_NAME = myos100.vdi
+VM_NAME = SheepOS
+IMG_NAME = SheepOS.img
+VDI_NAME = SheepOS.vdi
 IMG_SIZE = 1M
 
 all: build_img
 
-# Create a VM
-initialize: build_img create_vdi create_vm setup_vm
+# Create VM
+initialize: create_vdi create_vm setup_vm
 # Build image and attach to VDI
 build: build_img detach_vdi modify_vdi setup_vm
 # Run VM
