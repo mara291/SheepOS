@@ -493,12 +493,18 @@ read_file_characters:
     mov ah, 0x00 
     int 0x16
 
-    ; check if left or right arrow is pressed
+    ; check if any arrow is pressed
     cmp ah, 0x4b
     je arrow_left
 
     cmp ah, 0x4d
     je arrow_right
+
+    cmp ah, 0x50
+    je arrow_down
+
+    cmp ah, 0x48
+    je arrow_up
 
     ; backspace
     cmp al, 0x08
@@ -512,6 +518,7 @@ read_file_characters:
     cmp al, 0x0D
     je edit_done
 
+    ; save character in di
     mov byte [di], al
     inc di
 
@@ -523,7 +530,7 @@ read_file_characters:
 
 backspace:
     ; check if at beginning
-    cmp di, 0x9000
+    cmp di, 0x9200
     je read_file_characters
 
     ; move back one position in memory
@@ -537,6 +544,7 @@ backspace:
     mov bh, 0x01
     int 0x10
 
+    ; move cursor one left
     dec dl
 
     ; move cursor
@@ -563,6 +571,10 @@ arrow_left:
     mov bh, 0x01
     int 0x10
 
+    ; if position on 0 do not update
+    cmp dl, 0
+    je read_file_characters
+
     ; update cursor to left
     mov ah, 0x02
     mov bh, 0x01
@@ -586,6 +598,42 @@ arrow_right:
     int 0x10
 
     inc di
+
+    jmp read_file_characters
+
+arrow_down:
+    ; get cursor position
+    mov ah, 0x03 
+    mov bh, 0x01
+    int 0x10
+
+    ; update cursor to down
+    mov ah, 0x02
+    mov bh, 0x01
+    inc dh
+    int 0x10
+
+    add di, 80
+
+    jmp read_file_characters
+
+arrow_up:
+    ; get cursor position
+    mov ah, 0x03 
+    mov bh, 0x01
+    int 0x10
+
+    ; if position on 0 do not update
+    cmp dh, 0
+    je read_file_characters
+
+    ; update cursor to down
+    mov ah, 0x02
+    mov bh, 0x01
+    dec dh
+    int 0x10
+
+    sub di, 80
 
     jmp read_file_characters
 
@@ -903,6 +951,10 @@ help:
     call enter
 
     mov si, help8
+    call print_si
+    call enter
+
+    mov si, help9
     call print_si
     call enter
 
